@@ -21,22 +21,6 @@ namespace Stocktopus_2 {
         Black = 2
     }
 
-    internal enum InitialPos : ulong {
-        WhitePawns = 0x000000000000FF00,
-        WhiteKnights = 0x0000000000000042,
-        WhiteBishops = 0x0000000000000024,
-        WhiteRooks = 0x0000000000000081,
-        WhiteQueen = 0x0000000000000008,
-        WhiteKing = 0x0000000000000010,
-
-        BlackPawns = 0x00FF000000000000,
-        BlackKnights = 0x4200000000000000,
-        BlackBishops = 0x2400000000000000,
-        BlackRooks = 0x8100000000000000,
-        BlackQueen = 0x0800000000000000,
-        BlackKing = 0x1000000000000000,
-    }
-
     internal static class Squares {
         internal static ulong[] Mask = new ulong[]{
             0x0000000000000001,
