@@ -11,6 +11,9 @@ class UCI {
                     case "position": Core.SetPosition(cmd); break;
                     case "go": Console.WriteLine(Core.Bestmove()); break;
                 }
+
+                Console.WriteLine();
+                Core.board.Print();
             }
         }
     }

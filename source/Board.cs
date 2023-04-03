@@ -38,42 +38,54 @@ namespace Stocktopus_2 {
             mailbox[move.start] = new Piece(Color.None, PieceType.None);
 
             Color color = mailbox[move.end].color;
-            Bitboard moveBitboard = Squares.Mask[move.start] | Squares.Mask[move.end];
+            Bitboard moveBitboard = Constants.SquareMask[move.start] | Constants.SquareMask[move.end];
 
-            bitboards[(int)color][move.piece - 1] ^= moveBitboard;
+            bitboards[(byte)color][move.piece - 1] ^= moveBitboard;
 
             if (color == Color.White) whiteOccupiedSquares ^= moveBitboard;
             else blackOccupiedSquares ^= moveBitboard;
 
-            if (move.capture != (int)PieceType.None) {
-                bitboards[color == Color.White ? (int)Color.Black : (int)Color.White][move.capture - 1] ^= Squares.Mask[move.end];
+            if (move.capture != (byte)PieceType.None) {
+                bitboards[color == Color.White ? (byte)Color.Black : (byte)Color.White][move.capture - 1] ^= Constants.SquareMask[move.end];
 
-                if (color == Color.White) blackOccupiedSquares ^= Squares.Mask[move.end];
-                else whiteOccupiedSquares ^= Squares.Mask[move.end];
+                if (color == Color.White) blackOccupiedSquares ^= Constants.SquareMask[move.end];
+                else whiteOccupiedSquares ^= Constants.SquareMask[move.end];
             }
         }
 
-        internal static Board Clone(Board board) {
+        internal void Print() {
+            for (int i = 0; i < 64; i++) {
+                char square = '-';
+                switch (mailbox[i].pieceType) {
+                    case PieceType.Pawn: square = mailbox[i].color == Color.White ? 'P' : 'p'; break;
+                    case PieceType.Knight: square = mailbox[i].color == Color.White ? 'N' : 'n'; break;
+                    case PieceType.Bishop: square = mailbox[i].color == Color.White ? 'B' : 'b'; break;
+                    case PieceType.Rook: square = mailbox[i].color == Color.White ? 'R' : 'r'; break;
+                    case PieceType.Queen: square = mailbox[i].color == Color.White ? 'Q' : 'q'; break;
+                    case PieceType.King: square = mailbox[i].color == Color.White ? 'K' : 'k'; break;
+                }
+                Console.Write($"{square} ");
+                if ((i + 1) % 8 == 0 && i != 0) Console.WriteLine();
+            }
+        }
+
+        internal Board Clone() {
             Board toReturn = new() {
-                bitboards = board.bitboards,
-                mailbox = board.mailbox,
+                bitboards = bitboards,
+                mailbox = mailbox,
 
-                whiteOccupiedSquares = board.whiteOccupiedSquares,
-                blackOccupiedSquares = board.blackOccupiedSquares,
+                whiteOccupiedSquares = whiteOccupiedSquares,
+                blackOccupiedSquares = blackOccupiedSquares,
 
-                canBlackCastleKingside = board.canBlackCastleKingside,
-                canBlackCastleQueenside = board.canBlackCastleQueenside,
-                canWhiteCastleKingside = board.canWhiteCastleKingside,
-                canWhiteCastleQueenside = board.canWhiteCastleQueenside,
+                canBlackCastleKingside = canBlackCastleKingside,
+                canBlackCastleQueenside = canBlackCastleQueenside,
+                canWhiteCastleKingside = canWhiteCastleKingside,
+                canWhiteCastleQueenside = canWhiteCastleQueenside,
 
-                enPassantSquare = board.enPassantSquare
+                enPassantSquare = enPassantSquare
             };
 
             return toReturn;
-        }
-
-        internal static void Print(Board board) {
-            // TODO
         }
     }
 }
