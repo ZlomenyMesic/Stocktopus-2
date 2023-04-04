@@ -40,7 +40,7 @@ namespace Stocktopus_2 {
             string srank = (8 - ((start - (start % 8)) / 8)).ToString();
             string efile = "abcdefgh"[end % 8].ToString();
             string erank = (8 - ((end - (end % 8)) / 8)).ToString();
-            string prom = "nbrq"[promotion - 2].ToString();
+            string prom = promotion != 0 ? "nbrq"[promotion - 2].ToString() : "";
 
             return $"{sfile}{srank}{efile}{erank}{prom}";
         }

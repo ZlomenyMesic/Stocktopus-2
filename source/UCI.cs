@@ -12,15 +12,15 @@ class UCI {
                     case "go": Console.WriteLine(Core.Bestmove()); break;
                 }
 
-                Console.WriteLine();
-                Core.board.Print();
+                //Console.WriteLine();
+                //Core.board.Print();
 
-                Move[] moves = new Move[64];
-                int i = 0;
-                MoveGen.GetPawnMoves(Core.board.bitboards[0][0], Core.board, Color.White, moves, ref i);
+                //Move[] moves = new Move[64];
+                //int i = 0;
+                //MoveGen.GetPawnMoves(Core.board.bitboards[0][0], Core.board, Color.White, moves, ref i);
 
-                foreach (Move move in moves)
-                    Console.WriteLine($"{move.start} {move.end}");
+                //foreach (Move move in moves)
+                //    Console.WriteLine($"{move.start} {move.end}");
             }
         }
     }

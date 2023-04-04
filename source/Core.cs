@@ -102,7 +102,14 @@ namespace Stocktopus_2 {
         }
 
         public static string Bestmove() {
-            return "bestmove e2e4";
+            Move[] moves = new Move[218];
+            int i = 0;
+            MoveGen.GetPawnMoves(eColor == Color.White ? board.bitboards[0][0] : board.bitboards[1][0], board, eColor, moves, ref i);
+
+            Move pick = moves[new Random().Next(0, i)];
+            Console.WriteLine(eColor);
+            board.PerformMove(pick);
+            return $"bestmove {pick}";
         }
     }
 }
