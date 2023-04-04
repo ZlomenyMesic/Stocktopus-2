@@ -9,13 +9,16 @@ namespace Stocktopus_2 {
     internal static class Core {
         public static Board board = new Board();
 
+        public static Color eColor = Color.White;
+        public static Color pColor = Color.Black;
+
         public static void SetPosition(string[] args) {
-            board.bitboards[0][0] = 0x000000000000FF00;
-            board.bitboards[0][1] = 0x0000000000000042;
-            board.bitboards[0][2] = 0x0000000000000024;
-            board.bitboards[0][3] = 0x0000000000000081;
-            board.bitboards[0][4] = 0x0000000000000008;
-            board.bitboards[0][5] = 0x0000000000000010;
+            board.bitboards[1][0] = 0x000000000000FF00;
+            board.bitboards[1][1] = 0x0000000000000042;
+            board.bitboards[1][2] = 0x0000000000000024;
+            board.bitboards[1][3] = 0x0000000000000081;
+            board.bitboards[1][4] = 0x0000000000000008;
+            board.bitboards[1][5] = 0x0000000000000010;
 
             board.bitboards[0][0] = 0x00FF000000000000;
             board.bitboards[0][1] = 0x4200000000000000;
@@ -64,8 +67,12 @@ namespace Stocktopus_2 {
             board.mailbox[54] = new Piece(Color.White, PieceType.Pawn);
             board.mailbox[55] = new Piece(Color.White, PieceType.Pawn);
 
+            board.UpdateGenericBitboards();
+
             if (args.Length > 3) {
+                int moveCount = 0;
                 for (int i = 0; i < args.Length - 3; i++) {
+                    moveCount++;
                     string startStr = args[i + 3].Substring(0, 2);
                     string endStr = args[i + 3].Substring(2, 2);
 
@@ -76,11 +83,20 @@ namespace Stocktopus_2 {
 
                     byte start = (byte)(((startY - 1) * 8) + startX - 1);
                     byte end = (byte)(((endY - 1) * 8) + endX - 1);
-                    byte prom = args[i + 3].Length == 5 ? (byte)"nbrq".IndexOf(args[i + 3][4]) : (byte)PieceType.None;
+                    byte prom = args[i + 3].Length == 5 
+                        ? (byte)"nbrq".IndexOf(args[i + 3][4]) 
+                        : (byte)PieceType.None;
 
                     // TODO: CASTLING
 
                     board.PerformMove(new Move(start, end, (byte)board.mailbox[start].pieceType, (byte)board.mailbox[end].pieceType, prom, false));
+                }
+                if (moveCount % 2 == 0) {
+                    eColor = Color.White; 
+                    pColor = Color.Black; 
+                } else {
+                    eColor = Color.Black;
+                    pColor = Color.White;
                 }
             }
         }

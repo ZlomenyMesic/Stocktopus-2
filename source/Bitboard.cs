@@ -20,5 +20,12 @@ namespace Stocktopus_2 {
         public static implicit operator Bitboard(ulong board) {
             return new Bitboard(board);
         }
+
+        public static int BitScanForwardReset(ref Bitboard bitboard) {
+            ulong bb = bitboard.value;
+            bitboard.value &= bb - 1;
+
+            return Constants.DeBrujinTable[((ulong)((long)bb & -(long)bb) * Constants.DeBrujinValue) >> 58];
+        }
     }
 }

@@ -14,6 +14,13 @@ class UCI {
 
                 Console.WriteLine();
                 Core.board.Print();
+
+                Move[] moves = new Move[64];
+                int i = 0;
+                MoveGen.GetPawnMoves(Core.board.bitboards[0][0], Core.board, Color.White, moves, ref i);
+
+                foreach (Move move in moves)
+                    Console.WriteLine($"{move.start} {move.end}");
             }
         }
     }
