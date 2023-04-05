@@ -22,6 +22,10 @@ namespace Stocktopus_2 {
         internal int enPassantSquare;
 
         internal Board() {
+            MoveGen.InitializeRankAttacks();
+            MoveGen.InitializeFileAttacks();
+            MoveGen.InitializeDiagonalAttacks();
+
             bitboards[0] = new Bitboard[6];
             bitboards[1] = new Bitboard[6];
 
@@ -57,6 +61,8 @@ namespace Stocktopus_2 {
                 if (color == Color.White) blackOccupiedSquares ^= Constants.SquareMask[move.end];
                 else whiteOccupiedSquares ^= Constants.SquareMask[move.end];
             } else emptySquares ^= moveBitboard;
+
+            UpdateGenericBitboards();
         }
 
         internal void UpdateGenericBitboards() {

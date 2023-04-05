@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -19,6 +20,18 @@ namespace Stocktopus_2 {
 
         public static implicit operator Bitboard(ulong board) {
             return new Bitboard(board);
+        }
+
+        public static Bitboard ToBitboard(int board) {
+            return (ulong)board;
+        }
+
+        public static bool IsBitSet(Bitboard bitboard, int pos) {
+            return (bitboard & ((ulong)1 << pos)) != 0;
+        }
+
+        internal static int BitScanForward(Bitboard bitboard) {
+            return Constants.DeBrujinTable[((ulong)((long)bitboard.value & -(long)bitboard.value) * Constants.DeBrujinValue) >> 58];
         }
 
         public static int BitScanForwardReset(ref Bitboard bitboard) {
