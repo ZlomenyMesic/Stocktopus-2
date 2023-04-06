@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Transactions;
 
 namespace Stocktopus_2 {
     internal static class Core {
@@ -11,6 +12,14 @@ namespace Stocktopus_2 {
 
         public static Color eColor = Color.White;
         public static Color pColor = Color.Black;
+
+        public static void Initialize() {
+            MoveGen.InitializeKingAttacks();
+            MoveGen.InitializeRankAttacks();
+            MoveGen.InitializeFileAttacks();
+            MoveGen.InitializeA1H8DiagonalAttacks();
+            MoveGen.InitializeH1A8DiagonalAttacks();
+        }
 
         public static void SetPosition(string[] args) {
             board.bitboards[1][0] = 0x000000000000FF00;
@@ -87,9 +96,11 @@ namespace Stocktopus_2 {
                         ? (byte)"nbrq".IndexOf(args[i + 3][4]) 
                         : (byte)PieceType.None;
 
-                    // TODO: CASTLING
+                    bool isCastling = false;
+                    bool isEnPassant = false;
+                    if ((byte)board.mailbox[start].pieceType == 1 && (start % 8) + 1 != (end % 8) + 1 && board.mailbox[end].pieceType == 0) isEnPassant = true;
 
-                    board.PerformMove(new Move(start, end, (byte)board.mailbox[start].pieceType, (byte)board.mailbox[end].pieceType, prom, false));
+                    board.PerformMove(new Move(start, end, (byte)board.mailbox[start].pieceType, isEnPassant ? (byte)1 : (byte)board.mailbox[end].pieceType, prom, isCastling, isEnPassant));
                 }
                 if (moveCount % 2 == 0) {
                     eColor = Color.White; 
@@ -104,13 +115,51 @@ namespace Stocktopus_2 {
         public static string Bestmove() {
             Move[] moves = new Move[218];
             int i = 0;
-            MoveGen.GetPawnMoves(eColor == Color.White ? board.bitboards[0][0] : board.bitboards[1][0], board, eColor, moves, ref i);
-            MoveGen.GetKnightMoves(eColor == Color.White ? board.bitboards[0][1] : board.bitboards[1][1], board, eColor, moves, ref i);
-            MoveGen.GetBishopMoves(eColor == Color.White ? board.bitboards[0][2] : board.bitboards[1][2], board, eColor, moves, ref i);
+            MoveGen.GetAllMoves(board, eColor, moves, ref i);
 
-            Move pick = moves[new Random().Next(0, i)];
+            List<Move> legal = new List<Move>();
+            Board temp = board.Clone();
+            for (int j = 0; j < i; j++) {
+                if (moves[j].start == 0 && moves[j].end == 0) continue;
+                temp.bitboards = board.bitboards;
+                
+                temp.Print();
+                temp.PerformMove(moves[j]);
+                if (!IsCheck(board, eColor)) legal.Add(moves[j]);
+            }
+
+            Move pick = legal[new Random().Next(0, legal.Count)];
             board.PerformMove(pick);
             return $"bestmove {pick}";
+        }
+
+        internal static bool IsCheck(Board board, Color kingColor) {
+            Move[] moves;
+
+            for (int i = 0; i < 4; i++) {
+                moves = new Move[64];
+                int j = 0;
+
+                if (i == 0) {
+                    MoveGen.GetPawnMoves(new Bitboard(board.bitboards[(byte)kingColor][5]), board, kingColor, moves, ref j);
+                    for (int k = 0; k < j; k++)
+                        if (moves[k].capture == 1) return true;
+                } else if (i == 1) {
+                    MoveGen.GetKnightMoves(new Bitboard(board.bitboards[(byte)kingColor][5]), board, kingColor, moves, ref j);
+                    for (int k = 0; k < j; k++)
+                        if (moves[k].capture == 2) return true;
+                } else if (i == 2) {
+                    MoveGen.GetRookMoves(new Bitboard(board.bitboards[(byte)kingColor][5]), board, kingColor, moves, ref j);
+                    for (int k = 0; k < j; k++)
+                        if (moves[k].capture == 4 || moves[k].capture == 5) return true;
+                } else if (i == 3) {
+                    MoveGen.GetBishopMoves(new Bitboard(board.bitboards[(byte)kingColor][5]), board, kingColor, moves, ref j);
+                    for (int k = 0; k < j; k++)
+                        if (moves[k].capture == 3 || moves[k].capture == 5) return true;
+                }
+            }
+
+            return false;
         }
     }
 }

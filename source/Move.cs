@@ -13,14 +13,16 @@ namespace Stocktopus_2 {
         internal readonly byte capture;
         internal readonly byte promotion;
         internal readonly bool isCastling;
+        internal readonly bool isEnPassant;
 
-        internal Move(byte start, byte end, byte piece, byte capture, byte promotion, bool isCastling) {
+        internal Move(byte start, byte end, byte piece, byte capture, byte promotion, bool isCastling = false, bool isEnPassant = false) {
             this.start = start;
             this.end = end;
             this.piece = piece;
             this.capture = capture;
             this.promotion = promotion;
             this.isCastling = isCastling;
+            this.isEnPassant = isEnPassant;
         }
 
         public override int GetHashCode() {

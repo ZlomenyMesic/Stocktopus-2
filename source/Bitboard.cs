@@ -10,7 +10,7 @@ namespace Stocktopus_2 {
     internal class Bitboard {
         private ulong value;
 
-        private Bitboard(ulong board) {
+        internal Bitboard(ulong board) {
             value = board;
         }
 
@@ -22,11 +22,11 @@ namespace Stocktopus_2 {
             return new Bitboard(board);
         }
 
-        public static Bitboard ToBitboard(int board) {
+        internal static Bitboard ToBitboard(int board) {
             return (ulong)board;
         }
 
-        public static bool IsBitSet(Bitboard bitboard, int pos) {
+        internal static bool IsBitSet(Bitboard bitboard, int pos) {
             return (bitboard & ((ulong)1 << pos)) != 0;
         }
 

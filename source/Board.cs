@@ -14,18 +14,14 @@ namespace Stocktopus_2 {
         internal Bitboard blackOccupiedSquares;
         internal Bitboard emptySquares;
 
-        internal bool canWhiteCastleKingside;
-        internal bool canWhiteCastleQueenside;
-        internal bool canBlackCastleKingside;
-        internal bool canBlackCastleQueenside;
+        internal bool canWhiteCastleKingside = true;
+        internal bool canWhiteCastleQueenside = true;
+        internal bool canBlackCastleKingside = true;
+        internal bool canBlackCastleQueenside = true;
 
-        internal int enPassantSquare;
+        internal int enPassantSquare = -1;
 
         internal Board() {
-            MoveGen.InitializeRankAttacks();
-            MoveGen.InitializeFileAttacks();
-            MoveGen.InitializeDiagonalAttacks();
-
             bitboards[0] = new Bitboard[6];
             bitboards[1] = new Bitboard[6];
 
@@ -52,15 +48,47 @@ namespace Stocktopus_2 {
             if (color == Color.White) whiteOccupiedSquares ^= moveBitboard;
             else blackOccupiedSquares ^= moveBitboard;
 
-            if (move.capture != (byte)PieceType.None) {
-                emptySquares ^= Constants.SquareMask[move.start];
-                bitboards[color == Color.White
-                    ? (byte)Color.Black
-                    : (byte)Color.White][move.capture - 1] ^= Constants.SquareMask[move.end];
+            if (move.piece == 1 && color == Color.White && move.start >= 48 && move.start <= 55 && move.end >= 32 && move.end <= 39)
+                enPassantSquare = move.end;
+            else if (move.piece == 1 && color == Color.Black && move.start <= 15 && move.start >= 8 && move.end >= 24 && move.end <= 31)
+                enPassantSquare = move.end;
+            else enPassantSquare = -1;
 
-                if (color == Color.White) blackOccupiedSquares ^= Constants.SquareMask[move.end];
-                else whiteOccupiedSquares ^= Constants.SquareMask[move.end];
+            if (move.capture != (byte)PieceType.None) {
+                if (!move.isEnPassant) {
+                    bitboards[color == Color.White
+                        ? (byte)Color.Black
+                        : (byte)Color.White][move.capture - 1] ^= Constants.SquareMask[move.end];
+
+                    if (color == Color.White) blackOccupiedSquares ^= Constants.SquareMask[move.end];
+                    else whiteOccupiedSquares ^= Constants.SquareMask[move.end];
+
+                    emptySquares ^= Constants.SquareMask[move.start];
+                } else {
+                    ulong enPassant = color == Color.White
+                        ? Compass.South(Constants.SquareMask[move.end])
+                        : Compass.North(Constants.SquareMask[move.end]);
+
+                    bitboards[color == Color.White
+                        ? (byte)Color.Black
+                        : (byte)Color.White][0] ^= enPassant;
+
+                    mailbox[move.end + (color == Color.White ? 8 : -8)] = new Piece(Color.None, PieceType.None);
+                }
             } else emptySquares ^= moveBitboard;
+
+            if (canBlackCastleQueenside && (move.start == 0 || move.end == 0)) canBlackCastleQueenside = false;
+            else if (canWhiteCastleKingside && (move.start == 7 || move.end == 7)) canBlackCastleKingside = false;
+            else if (canWhiteCastleQueenside && (move.start == 56 || move.end == 56)) canWhiteCastleQueenside = false;
+            else if (canWhiteCastleKingside && (move.start == 63 || move.end == 63)) canWhiteCastleKingside = false;
+
+            else if (move.start == 4) {
+                canBlackCastleQueenside = false;
+                canBlackCastleKingside = false;
+            } else if (move.start == 60) {
+                canWhiteCastleQueenside = false;
+                canWhiteCastleKingside = false;
+            }
 
             UpdateGenericBitboards();
         }

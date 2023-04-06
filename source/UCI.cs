@@ -2,6 +2,7 @@
 
 class UCI {
     static void Main(string[] args) {
+        Core.Initialize();
         while (true) {
             string[] cmd = Console.ReadLine().Split(" ");
             if (cmd.Length != 0) {
@@ -11,16 +12,6 @@ class UCI {
                     case "position": Core.SetPosition(cmd); break;
                     case "go": Console.WriteLine(Core.Bestmove()); break;
                 }
-
-                //Console.WriteLine();
-                //Core.board.Print();
-
-                //Move[] moves = new Move[64];
-                //int i = 0;
-                //MoveGen.GetPawnMoves(Core.board.bitboards[0][0], Core.board, Color.White, moves, ref i);
-
-                //foreach (Move move in moves)
-                //    Console.WriteLine($"{move.start} {move.end}");
             }
         }
     }

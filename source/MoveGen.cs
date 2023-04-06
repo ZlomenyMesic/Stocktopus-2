@@ -1,16 +1,31 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
+using System.Net.NetworkInformation;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace Stocktopus_2 {
     internal static class MoveGen {
-        internal static ulong[][] RankAttacks = new ulong[64][];
-        internal static ulong[][] FileAttacks = new ulong[64][];
-        internal static ulong[][] A1H8DiagonalAttacks = new ulong[64][];
-        internal static ulong[][] H1A8DiagonalAttacks = new ulong[64][];
+        internal static readonly ulong[] KingAttacks = new ulong[64];
+
+        internal static readonly ulong[][] RankAttacks = new ulong[64][];
+        internal static readonly ulong[][] FileAttacks = new ulong[64][];
+        internal static readonly ulong[][] A1H8DiagonalAttacks = new ulong[64][];
+        internal static readonly ulong[][] H1A8DiagonalAttacks = new ulong[64][];
+
+        internal static void InitializeKingAttacks() {
+            for (int i = 0; i < 64; i++) {
+                Bitboard king = Constants.SquareMask[i];
+                Bitboard attacks = Compass.East(king) | Compass.West(king);
+                king |= attacks;
+                attacks |= Compass.North(king) | Compass.South(king);
+                KingAttacks[i] = attacks;
+            }
+        }
 
         internal static void InitializeRankAttacks() {
             for (int i = 0; i < 64; i++) {
@@ -66,7 +81,7 @@ namespace Stocktopus_2 {
             }
         }
 
-        internal static void InitializeDiagonalAttacks() {
+        internal static void InitializeA1H8DiagonalAttacks() {
             for (int i = 0; i < 64; i++) {
                 A1H8DiagonalAttacks[i] = new ulong[64];
             }
@@ -77,8 +92,7 @@ namespace Stocktopus_2 {
                     ulong targets = 0;
                     ulong rankTargets = diag > 0 ? RankAttacks[sq % 8][occ] : RankAttacks[sq / 8][occ];
 
-                    for (int bit = 0; bit < 8; bit++)
-                    {
+                    for (int bit = 0; bit < 8; bit++) {
                         int rank, file;
 
                         if (Bitboard.IsBitSet(rankTargets, bit)) {
@@ -100,50 +114,64 @@ namespace Stocktopus_2 {
             }
         }
 
+        internal static void InitializeH1A8DiagonalAttacks() {
+            for (int i = 0; i < 64; i++) {
+                H1A8DiagonalAttacks[i] = new ulong[64];
+            }
+
+            for (int sq = 0; sq < 64; sq++) {
+                for (int occ = 0; occ < 64; occ++) {
+                    int diag = (sq >> 3) + (sq & 7);
+                    ulong targets = 0;
+                    ulong rankTargets = diag > 7 ? RankAttacks[7 - sq / 8][occ] : RankAttacks[sq % 8][occ];
+
+                    for (int bit = 0; bit < 8; bit++) {
+                        int rank; int file;
+
+                        if (Bitboard.IsBitSet(rankTargets, bit)) {
+                            if (diag >= 7) {
+                                rank = 7 - bit;
+                                file = (diag - 7) + bit;
+                            } else {
+                                rank = diag - bit;
+                                file = bit;
+                            }
+                            if ((file >= 0) && (file <= 7) && (rank >= 0) && (rank <= 7)) {
+                                targets |= Constants.SquareMask[file + 8 * rank];
+                            }
+                        }
+                    }
+
+                    H1A8DiagonalAttacks[sq][occ] = targets;
+                }
+            }
+        }
+
         internal static void GetPawnMoves(Bitboard pawns, Board board, Color color, Move[] moves, ref int i) {
             Bitboard targets; byte start; byte end;
 
             while (pawns != 0) {
                 start = (byte)Bitboard.BitScanForwardReset(ref pawns);
-                targets = GetPawnTargets(Constants.SquareMask[start], board, color);
+                targets = Targets.GetPawnTargets(Constants.SquareMask[start], board, color);
+
+                if (board.enPassantSquare != -1) {
+                    if (start + 1 == board.enPassantSquare)
+                        moves[i++] = new Move(start, (byte)(start + (color == Color.White ? -7 : 9)), 1, 1, 0, false, true);
+                    else if (start - 1 == board.enPassantSquare)
+                        moves[i++] = new Move(start, (byte)(start + (color == Color.White ? -9 : 7)), 1, 1, 0, false, true);
+                }
 
                 while (targets != 0) {
                     end = (byte)Bitboard.BitScanForwardReset(ref targets);
 
                     if ((end < 8 && color == Color.White) || (end > 55 && color == Color.Black)) {
-                        moves[i++] = new Move(start, end, 1, (byte)board.mailbox[end].pieceType, 2, false);
-                        moves[i++] = new Move(start, end, 1, (byte)board.mailbox[end].pieceType, 3, false);
-                        moves[i++] = new Move(start, end, 1, (byte)board.mailbox[end].pieceType, 4, false);
-                        moves[i++] = new Move(start, end, 1, (byte)board.mailbox[end].pieceType, 5, false);
-                    } else moves[i++] = new Move(start, end, 1, (byte)board.mailbox[end].pieceType, 0, false);
+                        moves[i++] = new Move(start, end, 1, (byte)board.mailbox[end].pieceType, 2);
+                        moves[i++] = new Move(start, end, 1, (byte)board.mailbox[end].pieceType, 3);
+                        moves[i++] = new Move(start, end, 1, (byte)board.mailbox[end].pieceType, 4);
+                        moves[i++] = new Move(start, end, 1, (byte)board.mailbox[end].pieceType, 5);
+                    } else moves[i++] = new Move(start, end, 1, (byte)board.mailbox[end].pieceType, 0);
                 }
             }
-        }
-
-        private static Bitboard GetPawnTargets(Bitboard pawns, Board board, Color color) {
-            Bitboard singleStepPushTargets = color == Color.White
-                ? Compass.North(pawns) & board.emptySquares
-                : Compass.South(pawns) & board.emptySquares;
-
-            Bitboard doubleStepPushTargets = color == Color.White
-                ? Compass.North(singleStepPushTargets) & board.emptySquares & 0x000000FF00000000
-                : Compass.South(singleStepPushTargets) & board.emptySquares & 0x00000000FF000000;
-
-            Bitboard westAttacks = color == Color.White
-                ? Compass.NorthWest(pawns)
-                : Compass.SouthWest(pawns);
-
-            Bitboard eastAttacks = color == Color.White
-                ? Compass.NorthEast(pawns)
-                : Compass.SouthEast(pawns);
-
-            Bitboard allAttacks = (westAttacks | eastAttacks) & (Core.eColor == Color.White
-                ? board.blackOccupiedSquares
-                : board.whiteOccupiedSquares);
-
-            // TODO: EN PASSANT
-
-            return allAttacks | singleStepPushTargets | doubleStepPushTargets;
         }
 
         internal static void GetKnightMoves(Bitboard knights, Board board, Color color, Move[] moves, ref int i) {
@@ -151,28 +179,13 @@ namespace Stocktopus_2 {
 
             while (knights != 0) {
                 start = (byte)Bitboard.BitScanForwardReset(ref knights);
-                targets = GetKnightTargets(Constants.SquareMask[start], board, color);
+                targets = Targets.GetKnightTargets(Constants.SquareMask[start], board, color);
 
                 while (targets != 0) {
                     end = (byte)Bitboard.BitScanForwardReset(ref targets);
-                    moves[i++] = new Move(start, end, 2, (byte)board.mailbox[end].pieceType, 0, false);
+                    moves[i++] = new Move(start, end, 2, (byte)board.mailbox[end].pieceType, 0);
                 }
             }
-        }
-
-        private static Bitboard GetKnightTargets(Bitboard knights, Board board, Color color) {
-            Bitboard east = Compass.East(knights);
-            Bitboard west = Compass.West(knights);
-            Bitboard targets = (east | west) << 16;
-            targets |= (east | west) >> 16;
-            east = Compass.East(east);
-            west = Compass.West(west);
-            targets |= (east | west) << 8;
-            targets |= (east | west) >> 8;
-
-            return targets & (color == Color.White
-                ? board.blackOccupiedSquares | board.emptySquares
-                : board.whiteOccupiedSquares | board.emptySquares);
         }
 
         internal static void GetBishopMoves(Bitboard bishops, Board board, Color color, Move[] moves, ref int i) {
@@ -180,28 +193,79 @@ namespace Stocktopus_2 {
 
             while (bishops != 0) {
                 start = (byte)Bitboard.BitScanForwardReset(ref bishops);
-                targets = GetBishopTargets(Constants.SquareMask[start], board, color);
+                targets = Targets.GetBishopTargets(Constants.SquareMask[start], board, color);
 
                 while (targets != 0) {
                     end = (byte)Bitboard.BitScanForwardReset(ref targets);
-                    moves[i++] = new Move(start, end, 3, (byte)board.mailbox[end].pieceType, 0, false);
+                    moves[i++] = new Move(start, end, 3, (byte)board.mailbox[end].pieceType, 0);
                 }
             }
         }
 
-        private static Bitboard GetBishopTargets(Bitboard bishops, Board board, Color color) {
-            Bitboard occupied = ~board.emptySquares;
-            Bitboard targets = 0;
+        internal static void GetRookMoves(Bitboard rooks, Board board, Color color, Move[] moves, ref int i) {
+            Bitboard targets; byte start; byte end;
 
-            int square = Bitboard.BitScanForward(bishops);
+            while (rooks != 0) {
+                start = (byte)Bitboard.BitScanForwardReset(ref rooks);
+                targets = Targets.GetRookTargets(Constants.SquareMask[start], board, color);
 
-            int diagonal = 7 + (square >> 3) - (square & 7);
-            int occupancy = (int)((occupied & Constants.A1H8DiagonalMask[diagonal]) * Constants.A1H8DiagonalMagic[diagonal] >> 56);
-            targets |= A1H8DiagonalAttacks[square][(occupancy >> 1) & 63];
+                while (targets != 0) {
+                    end = (byte)Bitboard.BitScanForwardReset(ref targets);
+                    moves[i++] = new Move(start, end, 4, (byte)board.mailbox[end].pieceType, 0);
+                }
+            }
+        }
 
-            return targets & (color == Color.White
-                ? board.blackOccupiedSquares | board.emptySquares
-                : board.whiteOccupiedSquares | board.emptySquares);
+        internal static void GetQueenMoves(Bitboard queens, Board board, Color color, Move[] moves, ref int i) {
+            Bitboard targets; byte start; byte end;
+
+            while (queens != 0) {
+                start = (byte)Bitboard.BitScanForwardReset(ref queens);
+                targets = Targets.GetRookTargets(Constants.SquareMask[start], board, color) | Targets.GetBishopTargets(Constants.SquareMask[start], board, color);
+
+                while (targets != 0) {
+                    end = (byte)Bitboard.BitScanForwardReset(ref targets);
+                    moves[i++] = new Move(start, end, 5, (byte)board.mailbox[end].pieceType, 0);
+                }
+            }
+        }
+
+        internal static void GetKingMoves(Bitboard king, Board board, Color color, Move[] moves, ref int i) {
+            Bitboard targets; byte start; byte end;
+
+            while (king != 0) {
+                start = (byte)Bitboard.BitScanForwardReset(ref king);
+                targets = Targets.GetKingTargets(Constants.SquareMask[start], board, color);
+
+                while (targets != 0) {
+                    end = (byte)Bitboard.BitScanForwardReset(ref targets);
+                    moves[i++] = new Move(start, end, 6, (byte)board.mailbox[end].pieceType, 0);
+                }
+            }
+        }
+
+        internal static void GetCastlingMoves(Board board, Color color, Move[] moves, ref int i) {
+            if (color == Color.White) {
+                if (board.canWhiteCastleKingside && (~board.emptySquares & 0x6000000000000000) == 0)
+                    moves[i++] = new Move(60, 62, 6, 0, 0, true);
+                if (board.canBlackCastleQueenside && (~board.emptySquares & 0x0700000000000000) == 0)
+                    moves[i++] = new Move(60, 57, 6, 0, 0, true);
+            } else {
+                if (board.canBlackCastleKingside && (~board.emptySquares & 0x0000000000000060) == 0)
+                    moves[i++] = new Move(4, 6, 6, 0, 0, true);
+                if (board.canBlackCastleQueenside && (~board.emptySquares & 0x0000000000000007) == 0)
+                    moves[i++] = new Move(4, 2, 6, 0, 0, true);
+            }
+        }
+
+        internal static void GetAllMoves(Board board, Color color, Move[] moves, ref int i) {
+            GetPawnMoves(board.bitboards[(byte)color][0], board, color, moves, ref i);
+            GetKnightMoves(board.bitboards[(byte)color][1], board, color, moves, ref i);
+            GetBishopMoves(board.bitboards[(byte)color][2], board, color, moves, ref i);
+            GetRookMoves(board.bitboards[(byte)color][3], board, color, moves, ref i);
+            GetQueenMoves(board.bitboards[(byte)color][4], board, color, moves, ref i);
+            GetKingMoves(board.bitboards[(byte)color][5], board, color, moves, ref i);
+            GetCastlingMoves(board, color, moves, ref i);
         }
     }
 }
