@@ -251,12 +251,12 @@ namespace Stocktopus_2 {
             if (color == Color.White) {
                 if (board.canWhiteCastleKingside && (~board.emptySquares & 0x6000000000000000) == 0)
                     moves[i++] = new Move(60, 62, 6, 0, 0, true);
-                if (board.canBlackCastleQueenside && (~board.emptySquares & 0x0700000000000000) == 0)
+                if (board.canWhiteCastleQueenside && (~board.emptySquares & 0x0E00000000000000) == 0)
                     moves[i++] = new Move(60, 58, 6, 0, 0, true);
             } else {
                 if (board.canBlackCastleKingside && (~board.emptySquares & 0x0000000000000060) == 0)
                     moves[i++] = new Move(4, 6, 6, 0, 0, true);
-                if (board.canBlackCastleQueenside && (~board.emptySquares & 0x0000000000000007) == 0)
+                if (board.canBlackCastleQueenside && (~board.emptySquares & 0x000000000000000E) == 0)
                     moves[i++] = new Move(4, 2, 6, 0, 0, true);
             }
         }

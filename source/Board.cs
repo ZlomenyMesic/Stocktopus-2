@@ -103,7 +103,6 @@ namespace Stocktopus_2 {
             }
 
             if (move.isCastling) {
-                Console.WriteLine($"castling {move.start} {move.end}");
                 if (move.end == 2) {
                     ulong blackQueenside = 0x0000000000000009;
                     bitboards[1][3] ^= blackQueenside;
@@ -113,7 +112,7 @@ namespace Stocktopus_2 {
                     mailbox[3] = new Piece(Color.Black, PieceType.Rook);
                 } 
                 else if (move.end == 6) {
-                    ulong blackKingside = 0x0000000000000050;
+                    ulong blackKingside = 0x00000000000000A0;
                     bitboards[1][3] ^= blackKingside;
                     blackOccupiedSquares ^= blackKingside;
                     emptySquares ^= blackKingside;
@@ -127,9 +126,8 @@ namespace Stocktopus_2 {
                     emptySquares ^= whiteQueenside;
                     mailbox[56] = new Piece(Color.None, PieceType.None);
                     mailbox[59] = new Piece(Color.White, PieceType.Rook);
-                } 
-                else if (move.end == 62) {
-                    ulong whiteKingside = 0x5000000000000000;
+                } else if (move.end == 62) {
+                    ulong whiteKingside = 0xA000000000000000;
                     bitboards[0][3] ^= whiteKingside;
                     whiteOccupiedSquares ^= whiteKingside;
                     emptySquares ^= whiteKingside;
@@ -138,10 +136,10 @@ namespace Stocktopus_2 {
                 }
             }
 
-            if (canBlackCastleQueenside && (move.start == 0 || move.end == 0)) canBlackCastleQueenside = false;
-            else if (canWhiteCastleKingside && (move.start == 7 || move.end == 7)) canBlackCastleKingside = false;
-            else if (canWhiteCastleQueenside && (move.start == 56 || move.end == 56)) canWhiteCastleQueenside = false;
-            else if (canWhiteCastleKingside && (move.start == 63 || move.end == 63)) canWhiteCastleKingside = false;
+            if (move.start == 0 || move.end == 0) canBlackCastleQueenside = false;
+            else if (move.start == 7 || move.end == 7) canBlackCastleKingside = false;
+            else if (move.start == 56 || move.end == 56) canWhiteCastleQueenside = false;
+            else if (move.start == 63 || move.end == 63) canWhiteCastleKingside = false;
 
             if (move.start == 4) {
                 canBlackCastleQueenside = false;

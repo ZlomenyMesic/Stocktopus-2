@@ -152,16 +152,16 @@ namespace Stocktopus_2 {
                 temp.canBlackCastleQueenside = board.canBlackCastleQueenside;
                 temp.canBlackCastleKingside = board.canBlackCastleKingside;
 
-                Console.WriteLine($"{moves[j].start} {moves[j].end} {moves[j].piece}");
+                //Console.WriteLine($"{moves[j].start} {moves[j].end} {moves[j].piece}");
 
                 temp.PerformMove(moves[j]);
 
                 //foreach (Piece p in temp.mailbox)
                 //    Console.WriteLine($"piece {p.pieceType}");
 
-                //Console.WriteLine($"{moves[j].start} {moves[j].end} {IsCheck(temp, eColor)}");
+                //Console.WriteLine($"{moves[j].start} {moves[j].end} {moves[j].isCastling} {IsCheck(temp, eColor)}");
 
-                if (!IsCheck(temp, eColor)) legal.Add(moves[j]);
+                if (!IsCheck(temp, eColor) || moves[j].isCastling) legal.Add(moves[j]);
             }
 
             Move pick = legal[new Random().Next(0, legal.Count)];
