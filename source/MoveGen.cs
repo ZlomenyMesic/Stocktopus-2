@@ -155,10 +155,13 @@ namespace Stocktopus_2 {
                 targets = Targets.GetPawnTargets(Constants.SquareMask[start], board, color);
 
                 if (board.enPassantSquare != -1) {
-                    if (start + 1 == board.enPassantSquare)
-                        moves[i++] = new Move(start, (byte)(start + (color == Color.White ? -7 : 9)), 1, 1, 0, false, true);
-                    else if (start - 1 == board.enPassantSquare)
-                        moves[i++] = new Move(start, (byte)(start + (color == Color.White ? -9 : 7)), 1, 1, 0, false, true);
+                    int difference = (start % 8) - (board.enPassantSquare % 8);
+                    if (difference < 2 && difference > -2) {
+                        if (start + 1 == board.enPassantSquare)
+                            moves[i++] = new Move(start, (byte)(start + (color == Color.White ? -7 : 9)), 1, 1, 0, false, true);
+                        else if (start - 1 == board.enPassantSquare)
+                            moves[i++] = new Move(start, (byte)(start + (color == Color.White ? -9 : 7)), 1, 1, 0, false, true);
+                    }
                 }
 
                 while (targets != 0) {
@@ -249,7 +252,7 @@ namespace Stocktopus_2 {
                 if (board.canWhiteCastleKingside && (~board.emptySquares & 0x6000000000000000) == 0)
                     moves[i++] = new Move(60, 62, 6, 0, 0, true);
                 if (board.canBlackCastleQueenside && (~board.emptySquares & 0x0700000000000000) == 0)
-                    moves[i++] = new Move(60, 57, 6, 0, 0, true);
+                    moves[i++] = new Move(60, 58, 6, 0, 0, true);
             } else {
                 if (board.canBlackCastleKingside && (~board.emptySquares & 0x0000000000000060) == 0)
                     moves[i++] = new Move(4, 6, 6, 0, 0, true);
@@ -259,12 +262,12 @@ namespace Stocktopus_2 {
         }
 
         internal static void GetAllMoves(Board board, Color color, Move[] moves, ref int i) {
-            GetPawnMoves(board.bitboards[(byte)color][0], board, color, moves, ref i);
-            GetKnightMoves(board.bitboards[(byte)color][1], board, color, moves, ref i);
-            GetBishopMoves(board.bitboards[(byte)color][2], board, color, moves, ref i);
-            GetRookMoves(board.bitboards[(byte)color][3], board, color, moves, ref i);
-            GetQueenMoves(board.bitboards[(byte)color][4], board, color, moves, ref i);
-            GetKingMoves(board.bitboards[(byte)color][5], board, color, moves, ref i);
+            GetPawnMoves(new Bitboard(board.bitboards[(byte)color][0]), board, color, moves, ref i);
+            GetKnightMoves(new Bitboard(board.bitboards[(byte)color][1]), board, color, moves, ref i);
+            GetBishopMoves(new Bitboard(board.bitboards[(byte)color][2]), board, color, moves, ref i);
+            GetRookMoves(new Bitboard(board.bitboards[(byte)color][3]), board, color, moves, ref i);
+            GetQueenMoves(new Bitboard(board.bitboards[(byte)color][4]), board, color, moves, ref i);
+            GetKingMoves(new Bitboard(board.bitboards[(byte)color][5]), board, color, moves, ref i);
             GetCastlingMoves(board, color, moves, ref i);
         }
     }

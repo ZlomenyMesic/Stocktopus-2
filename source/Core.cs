@@ -92,19 +92,22 @@ namespace Stocktopus_2 {
 
                     byte start = (byte)(((startY - 1) * 8) + startX - 1);
                     byte end = (byte)(((endY - 1) * 8) + endX - 1);
-                    byte prom = args[i + 3].Length == 5 
-                        ? (byte)"nbrq".IndexOf(args[i + 3][4]) 
+                    byte prom = args[i + 3].Length == 5
+                        ? (byte)("nbrq".IndexOf(args[i + 3][4]) + 2)
                         : (byte)PieceType.None;
 
                     bool isCastling = false;
                     bool isEnPassant = false;
                     if ((byte)board.mailbox[start].pieceType == 1 && (start % 8) + 1 != (end % 8) + 1 && board.mailbox[end].pieceType == 0) isEnPassant = true;
+                    if ((byte)board.mailbox[start].pieceType == (byte)PieceType.King) {
+                        if ((start == 4 && (end == 2 || end == 6)) || (start == 60 && (end == 58 || end == 62))) isCastling = true;
+                    }
 
                     board.PerformMove(new Move(start, end, (byte)board.mailbox[start].pieceType, isEnPassant ? (byte)1 : (byte)board.mailbox[end].pieceType, prom, isCastling, isEnPassant));
                 }
                 if (moveCount % 2 == 0) {
-                    eColor = Color.White; 
-                    pColor = Color.Black; 
+                    eColor = Color.White;
+                    pColor = Color.Black;
                 } else {
                     eColor = Color.Black;
                     pColor = Color.White;
@@ -113,47 +116,89 @@ namespace Stocktopus_2 {
         }
 
         public static string Bestmove() {
+            //Console.WriteLine($"WQ {board.canWhiteCastleQueenside}");
+            //Console.WriteLine($"WK {board.canWhiteCastleKingside}");
+            //Console.WriteLine($"BQ {board.canBlackCastleQueenside}");
+            //Console.WriteLine($"BK {board.canBlackCastleKingside}");
+
+            //board.Print();
+
+            //Console.WriteLine(board.enPassantSquare);
+
             Move[] moves = new Move[218];
             int i = 0;
             MoveGen.GetAllMoves(board, eColor, moves, ref i);
 
-            List<Move> legal = new List<Move>();
-            Board temp = board.Clone();
+            List<Move> legal = new();
             for (int j = 0; j < i; j++) {
                 if (moves[j].start == 0 && moves[j].end == 0) continue;
-                temp.bitboards = board.bitboards;
-                
-                temp.Print();
+
+                Board temp = new();
+                for (int k = 0; k < 6; k++) {
+                    temp.bitboards[0][k] = new Bitboard(board.bitboards[0][k]);
+                    temp.bitboards[1][k] = new Bitboard(board.bitboards[1][k]);
+                }
+
+                for (int k = 0; k < 64; k++) {
+                    temp.mailbox[k] = new Piece(board.mailbox[k].color, board.mailbox[k].pieceType);
+                }
+
+                temp.emptySquares = new Bitboard(board.emptySquares);
+                temp.whiteOccupiedSquares = new Bitboard(board.whiteOccupiedSquares);
+                temp.blackOccupiedSquares = new Bitboard(board.blackOccupiedSquares);
+
+                temp.canWhiteCastleQueenside = board.canWhiteCastleQueenside;
+                temp.canWhiteCastleKingside = board.canWhiteCastleKingside;
+                temp.canBlackCastleQueenside = board.canBlackCastleQueenside;
+                temp.canBlackCastleKingside = board.canBlackCastleKingside;
+
+                Console.WriteLine($"{moves[j].start} {moves[j].end} {moves[j].piece}");
+
                 temp.PerformMove(moves[j]);
-                if (!IsCheck(board, eColor)) legal.Add(moves[j]);
+
+                //foreach (Piece p in temp.mailbox)
+                //    Console.WriteLine($"piece {p.pieceType}");
+
+                //Console.WriteLine($"{moves[j].start} {moves[j].end} {IsCheck(temp, eColor)}");
+
+                if (!IsCheck(temp, eColor)) legal.Add(moves[j]);
             }
 
             Move pick = legal[new Random().Next(0, legal.Count)];
+
+            for (int k = 0; k < legal.Count; k++) {
+                if (legal[k].isEnPassant || legal[k].isCastling) pick = legal[k];
+            }
+
             board.PerformMove(pick);
             return $"bestmove {pick}";
         }
 
-        internal static bool IsCheck(Board board, Color kingColor) {
+        internal static bool IsCheck(Board inpboard, Color kingColor) {
             Move[] moves;
 
-            for (int i = 0; i < 4; i++) {
+            for (int i = 0; i < 5; i++) {
                 moves = new Move[64];
                 int j = 0;
 
                 if (i == 0) {
-                    MoveGen.GetPawnMoves(new Bitboard(board.bitboards[(byte)kingColor][5]), board, kingColor, moves, ref j);
+                    MoveGen.GetKingMoves(new Bitboard(inpboard.bitboards[(byte)kingColor][5]), inpboard, kingColor, moves, ref j);
+                    for (int k = 0; k < j; k++)
+                        if (moves[k].capture == 6 || moves[k].capture == 5) return true;
+                } else if (i == 1) {
+                    MoveGen.GetPawnMoves(new Bitboard(inpboard.bitboards[(byte)kingColor][5]), inpboard, kingColor, moves, ref j);
                     for (int k = 0; k < j; k++)
                         if (moves[k].capture == 1) return true;
-                } else if (i == 1) {
-                    MoveGen.GetKnightMoves(new Bitboard(board.bitboards[(byte)kingColor][5]), board, kingColor, moves, ref j);
+                } else if (i == 2) {
+                    MoveGen.GetKnightMoves(new Bitboard(inpboard.bitboards[(byte)kingColor][5]), inpboard, kingColor, moves, ref j);
                     for (int k = 0; k < j; k++)
                         if (moves[k].capture == 2) return true;
-                } else if (i == 2) {
-                    MoveGen.GetRookMoves(new Bitboard(board.bitboards[(byte)kingColor][5]), board, kingColor, moves, ref j);
+                } else if (i == 3) {
+                    MoveGen.GetRookMoves(new Bitboard(inpboard.bitboards[(byte)kingColor][5]), inpboard, kingColor, moves, ref j);
                     for (int k = 0; k < j; k++)
                         if (moves[k].capture == 4 || moves[k].capture == 5) return true;
-                } else if (i == 3) {
-                    MoveGen.GetBishopMoves(new Bitboard(board.bitboards[(byte)kingColor][5]), board, kingColor, moves, ref j);
+                } else if (i == 4) {
+                    MoveGen.GetBishopMoves(new Bitboard(inpboard.bitboards[(byte)kingColor][5]), inpboard, kingColor, moves, ref j);
                     for (int k = 0; k < j; k++)
                         if (moves[k].capture == 3 || moves[k].capture == 5) return true;
                 }

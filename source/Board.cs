@@ -73,16 +73,77 @@ namespace Stocktopus_2 {
                         ? (byte)Color.Black
                         : (byte)Color.White][0] ^= enPassant;
 
+                    if (color == Color.White) blackOccupiedSquares ^= enPassant;
+                    else whiteOccupiedSquares ^= enPassant;
+
                     mailbox[move.end + (color == Color.White ? 8 : -8)] = new Piece(Color.None, PieceType.None);
+                    emptySquares ^= enPassant;
                 }
             } else emptySquares ^= moveBitboard;
+
+            if (move.promotion != 0) {
+                bitboards[(byte)color][0] ^= Constants.SquareMask[move.end];
+
+                if (move.promotion == 2) {
+                    mailbox[move.end] = new Piece(color, PieceType.Knight);
+                    bitboards[(byte)color][1] |= Constants.SquareMask[move.end];
+                } 
+                else if (move.promotion == 3) {
+                    mailbox[move.end] = new Piece(color, PieceType.Bishop);
+                    bitboards[(byte)color][2] |= Constants.SquareMask[move.end];
+                } 
+                else if (move.promotion == 4) {
+                    mailbox[move.end] = new Piece(color, PieceType.Rook);
+                    bitboards[(byte)color][3] |= Constants.SquareMask[move.end];
+                } 
+                else if (move.promotion == 5) {
+                    mailbox[move.end] = new Piece(color, PieceType.Queen);
+                    bitboards[(byte)color][4] |= Constants.SquareMask[move.end];
+                }
+            }
+
+            if (move.isCastling) {
+                Console.WriteLine($"castling {move.start} {move.end}");
+                if (move.end == 2) {
+                    ulong blackQueenside = 0x0000000000000009;
+                    bitboards[1][3] ^= blackQueenside;
+                    blackOccupiedSquares ^= blackQueenside;
+                    emptySquares ^= blackQueenside;
+                    mailbox[0] = new Piece(Color.None, PieceType.None);
+                    mailbox[3] = new Piece(Color.Black, PieceType.Rook);
+                } 
+                else if (move.end == 6) {
+                    ulong blackKingside = 0x0000000000000050;
+                    bitboards[1][3] ^= blackKingside;
+                    blackOccupiedSquares ^= blackKingside;
+                    emptySquares ^= blackKingside;
+                    mailbox[7] = new Piece(Color.None, PieceType.None);
+                    mailbox[5] = new Piece(Color.Black, PieceType.Rook);
+                } 
+                else if (move.end == 58) {
+                    ulong whiteQueenside = 0x0900000000000000;
+                    bitboards[0][3] ^= whiteQueenside;
+                    whiteOccupiedSquares ^= whiteQueenside;
+                    emptySquares ^= whiteQueenside;
+                    mailbox[56] = new Piece(Color.None, PieceType.None);
+                    mailbox[59] = new Piece(Color.White, PieceType.Rook);
+                } 
+                else if (move.end == 62) {
+                    ulong whiteKingside = 0x5000000000000000;
+                    bitboards[0][3] ^= whiteKingside;
+                    whiteOccupiedSquares ^= whiteKingside;
+                    emptySquares ^= whiteKingside;
+                    mailbox[63] = new Piece(Color.None, PieceType.None);
+                    mailbox[61] = new Piece(Color.White, PieceType.Rook);
+                }
+            }
 
             if (canBlackCastleQueenside && (move.start == 0 || move.end == 0)) canBlackCastleQueenside = false;
             else if (canWhiteCastleKingside && (move.start == 7 || move.end == 7)) canBlackCastleKingside = false;
             else if (canWhiteCastleQueenside && (move.start == 56 || move.end == 56)) canWhiteCastleQueenside = false;
             else if (canWhiteCastleKingside && (move.start == 63 || move.end == 63)) canWhiteCastleKingside = false;
 
-            else if (move.start == 4) {
+            if (move.start == 4) {
                 canBlackCastleQueenside = false;
                 canBlackCastleKingside = false;
             } else if (move.start == 60) {
