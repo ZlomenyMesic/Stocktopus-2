@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.PortableExecutable;
 using System.Text;
 using System.Threading.Tasks;
 using System.Transactions;
@@ -14,6 +15,7 @@ namespace Stocktopus_2 {
         internal static Color pColor = Color.Black;
 
         internal static int nodes = 0;
+        internal static int checks = 0;
         internal static int transpositions = 0;
 
         internal static void Initialize() {
@@ -124,7 +126,7 @@ namespace Stocktopus_2 {
         }
 
         internal static string UCIBestmove() {
-            Move pick = Minimax.FindBestMove(board, 3);
+            Move pick = Minimax.FindBestMove(Board.Clone(board), 2);
             board.PerformMove(pick);
             Console.WriteLine(nodes);
             nodes = 0;
@@ -168,18 +170,21 @@ namespace Stocktopus_2 {
         internal static bool IsMoveLegal(Board inpboard, Move move, Color color) {
             Board temp = Board.Clone(inpboard);
 
-            bool isCastlingLegal = true;
+            bool isLegal = true;
 
             if (move.isCastling) {
-                if (move.end == 2 && !IsMoveLegal(temp, new Move(4, 3, 6, 0, 0, false), color)) isCastlingLegal = false;
-                else if (move.end == 6 && !IsMoveLegal(temp, new Move(4, 5, 6, 0, 0, false), color)) isCastlingLegal = false;
-                else if (move.end == 58 && !IsMoveLegal(temp, new Move(60, 59, 6, 0, 0, false), color)) isCastlingLegal = false;
-                else if (move.end == 62 && !IsMoveLegal(temp, new Move(60, 61, 6, 0, 0, false), color)) isCastlingLegal = false;
+                if (move.end == 2 && !IsMoveLegal(temp, new Move(4, 3, 6, 0, 0, false), color)) isLegal = false;
+                else if (move.end == 6 && !IsMoveLegal(temp, new Move(4, 5, 6, 0, 0, false), color)) isLegal = false;
+                else if (move.end == 58 && !IsMoveLegal(temp, new Move(60, 59, 6, 0, 0, false), color)) isLegal = false;
+                else if (move.end == 62 && !IsMoveLegal(temp, new Move(60, 61, 6, 0, 0, false), color)) isLegal = false;
             }
+
+            //if (inpboard.mailbox[move.start].pieceType != PieceType.None) temp.PerformMove(move);
+            //else isLegal = false;
 
             temp.PerformMove(move);
 
-            return !IsCheck(temp, color) && isCastlingLegal;
+            return isLegal && !IsCheck(temp, color);
         }
     }
 }

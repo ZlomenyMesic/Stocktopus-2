@@ -8,8 +8,9 @@ namespace Stocktopus_2 {
     internal static class Minimax {
         internal static Move FindBestMove(Board board, int depth) {
             Move[] moves = MoveGen.GetLegalMoves(board, Core.eColor);
-            Move bestmove = new Move(0, 0, 0, 0, 0);
+            Move[] bestmoves = new Move[218];
             int highestEval = int.MinValue;
+            int counter = 0;
 
             for (int i = 0; i < moves.Length; i++) {
                 Board temp = Board.Clone(board);
@@ -18,10 +19,13 @@ namespace Stocktopus_2 {
                 int eval = Search(temp, depth, false, int.MinValue, int.MaxValue);
                 if (eval > highestEval) {
                     highestEval = eval;
-                    bestmove = moves[i];
-                }
+                    counter = 0;
+                    bestmoves[counter++] = moves[i];
+                } else if (eval == highestEval) bestmoves[counter++] = moves[i];
+                        
+                //Console.WriteLine($"{moves[i].start} {moves[i].end} {eval}");
             }
-            return bestmove;
+            return bestmoves[new Random().Next(0, counter)];
         }
 
         internal static int Search(Board board, int depth, bool maximizing, int alpha, int beta) {
@@ -32,8 +36,8 @@ namespace Stocktopus_2 {
             }
             if (maximizing) {
                 int value = depth * -50000;
-                Board[] children = GetBoardChildren(board, false);
-                if (children.Length == 0 && !Core.IsCheck(board, Core.eColor)) value = 420;
+                Board[] children = GetBoardChildren(Board.Clone(board), false);
+                if (children.Length == 0 && !Core.IsCheck(Board.Clone(board), Core.eColor)) value = 420;
 
                 for (byte i = 0; i < children.Length; i++) {
                     int nextSearch = Search(Board.Clone(children[i]), depth - 1, false, alpha, beta);
@@ -44,10 +48,8 @@ namespace Stocktopus_2 {
                 return value;
             } else {
                 int value = depth * 50000;
-                Board[] children = GetBoardChildren(board, true);
-                if (children.Length == 0 && !Core.IsCheck(board, Core.pColor)) value = -420;
-
-                //Console.WriteLine($"{children.Length}");
+                Board[] children = GetBoardChildren(Board.Clone(board), true);
+                if (children.Length == 0 && !Core.IsCheck(Board.Clone(board), Core.pColor)) value = -420;
 
                 for (byte i = 0; i < children.Length; i++) {
                     int nextMinimax = Search(Board.Clone(children[i]), depth - 1, true, alpha, beta);
@@ -62,6 +64,7 @@ namespace Stocktopus_2 {
         internal static Board[] GetBoardChildren(Board board, bool maximizing) {
             Move[] moves = MoveGen.GetLegalMoves(board, maximizing ? Core.pColor : Core.eColor);
             Board[] children = new Board[moves.Length];
+
 
             for (int i = 0; i < moves.Length; i++) {
                 children[i] = Board.Clone(board);

@@ -37,7 +37,7 @@ namespace Stocktopus_2 {
 
         internal void PerformMove(Move move) {
             this.Print();
-            Console.WriteLine($"{move.start} {move.end} {move.piece}");
+            //Console.WriteLine($"{move.start} {move.end} {move.piece}");
             mailbox[move.end] = mailbox[move.start];
             mailbox[move.start] = new Piece(Color.None, PieceType.None);
 
@@ -195,6 +195,8 @@ namespace Stocktopus_2 {
             temp.canWhiteCastleKingside = inpboard.canWhiteCastleKingside;
             temp.canBlackCastleQueenside = inpboard.canBlackCastleQueenside;
             temp.canBlackCastleKingside = inpboard.canBlackCastleKingside;
+
+            temp.enPassantSquare = inpboard.enPassantSquare;
 
             return temp;
         }
