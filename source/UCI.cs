@@ -10,7 +10,8 @@ class UCI {
                     case "uci": Console.WriteLine("uciok"); break;
                     case "isready": Console.WriteLine("readyok"); break;
                     case "position": Core.SetPosition(cmd); break;
-                    case "go": Console.WriteLine(Core.Bestmove()); break;
+                    case "go": Console.WriteLine(Core.UCIBestmove()); break;
+                    case "ucinewgame": Core.UCINewgame(); break;
                 }
             }
         }

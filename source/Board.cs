@@ -36,6 +36,8 @@ namespace Stocktopus_2 {
         }
 
         internal void PerformMove(Move move) {
+            this.Print();
+            Console.WriteLine($"{move.start} {move.end} {move.piece}");
             mailbox[move.end] = mailbox[move.start];
             mailbox[move.start] = new Piece(Color.None, PieceType.None);
 
@@ -174,24 +176,27 @@ namespace Stocktopus_2 {
             }
         }
 
-        internal Board Clone() {
-            Board toReturn = new() {
-                bitboards = bitboards,
-                mailbox = mailbox,
+        internal static Board Clone(Board inpboard) {
+            Board temp = new();
+            for (int k = 0; k < 6; k++) {
+                temp.bitboards[0][k] = new Bitboard(inpboard.bitboards[0][k]);
+                temp.bitboards[1][k] = new Bitboard(inpboard.bitboards[1][k]);
+            }
 
-                whiteOccupiedSquares = whiteOccupiedSquares,
-                blackOccupiedSquares = blackOccupiedSquares,
-                emptySquares = emptySquares,
+            for (int k = 0; k < 64; k++) {
+                temp.mailbox[k] = new Piece(inpboard.mailbox[k].color, inpboard.mailbox[k].pieceType);
+            }
 
-                canBlackCastleKingside = canBlackCastleKingside,
-                canBlackCastleQueenside = canBlackCastleQueenside,
-                canWhiteCastleKingside = canWhiteCastleKingside,
-                canWhiteCastleQueenside = canWhiteCastleQueenside,
+            temp.emptySquares = new Bitboard(inpboard.emptySquares);
+            temp.whiteOccupiedSquares = new Bitboard(inpboard.whiteOccupiedSquares);
+            temp.blackOccupiedSquares = new Bitboard(inpboard.blackOccupiedSquares);
 
-                enPassantSquare = enPassantSquare
-            };
+            temp.canWhiteCastleQueenside = inpboard.canWhiteCastleQueenside;
+            temp.canWhiteCastleKingside = inpboard.canWhiteCastleKingside;
+            temp.canBlackCastleQueenside = inpboard.canBlackCastleQueenside;
+            temp.canBlackCastleKingside = inpboard.canBlackCastleKingside;
 
-            return toReturn;
+            return temp;
         }
     }
 }

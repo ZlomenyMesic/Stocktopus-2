@@ -270,5 +270,25 @@ namespace Stocktopus_2 {
             GetKingMoves(new Bitboard(board.bitboards[(byte)color][5]), board, color, moves, ref i);
             GetCastlingMoves(board, color, moves, ref i);
         }
+
+        internal static Move[] GetLegalMoves(Board board, Color color) {
+            Move[] allMoves = new Move[300]; 
+            Move[] legalMoves = new Move[218];
+
+            int i = 0;
+            int j = 0;
+            GetAllMoves(board, color, allMoves, ref i);
+
+            for (int k = 0; k < i; k++) {
+                if (Core.IsMoveLegal(board, allMoves[k], color)) legalMoves[j++] = allMoves[k];
+            }
+
+            Move[] result = new Move[j];
+            for (int l = 0; l < j; l++) {
+                result[l] = legalMoves[l];
+            }
+
+            return result;
+        }
     }
 }
