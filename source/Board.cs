@@ -21,6 +21,8 @@ namespace Stocktopus_2 {
 
         internal int enPassantSquare = -1;
 
+        internal int numberOfPieces = 32;
+
         internal Board() {
             bitboards[0] = new Bitboard[6];
             bitboards[1] = new Bitboard[6];
@@ -36,7 +38,7 @@ namespace Stocktopus_2 {
         }
 
         internal void PerformMove(Move move) {
-            this.Print();
+            //this.Print();
             //Console.WriteLine($"{move.start} {move.end} {move.piece}");
             mailbox[move.end] = mailbox[move.start];
             mailbox[move.start] = new Piece(Color.None, PieceType.None);
@@ -57,6 +59,7 @@ namespace Stocktopus_2 {
             else enPassantSquare = -1;
 
             if (move.capture != (byte)PieceType.None) {
+                numberOfPieces--;
                 if (!move.isEnPassant) {
                     bitboards[color == Color.White
                         ? (byte)Color.Black
@@ -105,37 +108,10 @@ namespace Stocktopus_2 {
             }
 
             if (move.isCastling) {
-                if (move.end == 2) {
-                    ulong blackQueenside = 0x0000000000000009;
-                    bitboards[1][3] ^= blackQueenside;
-                    blackOccupiedSquares ^= blackQueenside;
-                    emptySquares ^= blackQueenside;
-                    mailbox[0] = new Piece(Color.None, PieceType.None);
-                    mailbox[3] = new Piece(Color.Black, PieceType.Rook);
-                } 
-                else if (move.end == 6) {
-                    ulong blackKingside = 0x00000000000000A0;
-                    bitboards[1][3] ^= blackKingside;
-                    blackOccupiedSquares ^= blackKingside;
-                    emptySquares ^= blackKingside;
-                    mailbox[7] = new Piece(Color.None, PieceType.None);
-                    mailbox[5] = new Piece(Color.Black, PieceType.Rook);
-                } 
-                else if (move.end == 58) {
-                    ulong whiteQueenside = 0x0900000000000000;
-                    bitboards[0][3] ^= whiteQueenside;
-                    whiteOccupiedSquares ^= whiteQueenside;
-                    emptySquares ^= whiteQueenside;
-                    mailbox[56] = new Piece(Color.None, PieceType.None);
-                    mailbox[59] = new Piece(Color.White, PieceType.Rook);
-                } else if (move.end == 62) {
-                    ulong whiteKingside = 0xA000000000000000;
-                    bitboards[0][3] ^= whiteKingside;
-                    whiteOccupiedSquares ^= whiteKingside;
-                    emptySquares ^= whiteKingside;
-                    mailbox[63] = new Piece(Color.None, PieceType.None);
-                    mailbox[61] = new Piece(Color.White, PieceType.Rook);
-                }
+                if (move.end == 2) PerformMove(new Move(0, 3, 4, 0, 0));
+                else if (move.end == 6) PerformMove(new Move(7, 5, 4, 0, 0));
+                else if (move.end == 58) PerformMove(new Move(56, 57, 4, 0, 0));
+                else if (move.end == 62) PerformMove(new Move(63, 61, 4, 0, 0));
             }
 
             if (move.start == 0 || move.end == 0) canBlackCastleQueenside = false;
@@ -197,6 +173,8 @@ namespace Stocktopus_2 {
             temp.canBlackCastleKingside = inpboard.canBlackCastleKingside;
 
             temp.enPassantSquare = inpboard.enPassantSquare;
+
+            temp.numberOfPieces = inpboard.numberOfPieces;
 
             return temp;
         }

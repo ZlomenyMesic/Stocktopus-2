@@ -167,7 +167,7 @@ namespace Stocktopus_2 {
                 while (targets != 0) {
                     end = (byte)Bitboard.BitScanForwardReset(ref targets);
 
-                    if ((end < 8 && color == Color.White) || (end > 55 && color == Color.Black)) {
+                    if ((color == Color.White && end < 8) || (color == Color.Black && end > 55)) {
                         moves[i++] = new Move(start, end, 1, (byte)board.mailbox[end].pieceType, 2);
                         moves[i++] = new Move(start, end, 1, (byte)board.mailbox[end].pieceType, 3);
                         moves[i++] = new Move(start, end, 1, (byte)board.mailbox[end].pieceType, 4);
@@ -262,13 +262,13 @@ namespace Stocktopus_2 {
         }
 
         internal static void GetAllMoves(Board board, Color color, Move[] moves, ref int i) {
-            GetPawnMoves(new Bitboard(board.bitboards[(byte)color][0]), board, color, moves, ref i);
-            GetKnightMoves(new Bitboard(board.bitboards[(byte)color][1]), board, color, moves, ref i);
-            GetBishopMoves(new Bitboard(board.bitboards[(byte)color][2]), board, color, moves, ref i);
-            GetRookMoves(new Bitboard(board.bitboards[(byte)color][3]), board, color, moves, ref i);
-            GetQueenMoves(new Bitboard(board.bitboards[(byte)color][4]), board, color, moves, ref i);
-            GetKingMoves(new Bitboard(board.bitboards[(byte)color][5]), board, color, moves, ref i);
-            GetCastlingMoves(board, color, moves, ref i);
+            GetPawnMoves(new Bitboard(board.bitboards[(byte)color][0]), Board.Clone(board), color, moves, ref i);
+            GetKnightMoves(new Bitboard(board.bitboards[(byte)color][1]), Board.Clone(board), color, moves, ref i);
+            GetBishopMoves(new Bitboard(board.bitboards[(byte)color][2]), Board.Clone(board), color, moves, ref i);
+            GetRookMoves(new Bitboard(board.bitboards[(byte)color][3]), Board.Clone(board), color, moves, ref i);
+            GetQueenMoves(new Bitboard(board.bitboards[(byte)color][4]), Board.Clone(board), color, moves, ref i);
+            GetKingMoves(new Bitboard(board.bitboards[(byte)color][5]), Board.Clone(board), color, moves, ref i);
+            GetCastlingMoves(Board.Clone(board), color, moves, ref i);
         }
 
         internal static Move[] GetLegalMoves(Board board, Color color) {
@@ -280,7 +280,7 @@ namespace Stocktopus_2 {
             GetAllMoves(board, color, allMoves, ref i);
 
             for (int k = 0; k < i; k++) {
-                if (Core.IsMoveLegal(board, allMoves[k], color)) legalMoves[j++] = allMoves[k];
+                if (Core.IsMoveLegal(Board.Clone(board), allMoves[k], color)) legalMoves[j++] = allMoves[k];
             }
 
             Move[] result = new Move[j];

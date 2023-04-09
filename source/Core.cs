@@ -126,6 +126,7 @@ namespace Stocktopus_2 {
         }
 
         internal static string UCIBestmove() {
+            Console.WriteLine(Minimax.Evaluate(board));
             Move pick = Minimax.FindBestMove(Board.Clone(board), 2);
             board.PerformMove(pick);
             Console.WriteLine(nodes);
@@ -179,10 +180,8 @@ namespace Stocktopus_2 {
                 else if (move.end == 62 && !IsMoveLegal(temp, new Move(60, 61, 6, 0, 0, false), color)) isLegal = false;
             }
 
-            //if (inpboard.mailbox[move.start].pieceType != PieceType.None) temp.PerformMove(move);
-            //else isLegal = false;
-
-            temp.PerformMove(move);
+            if (inpboard.mailbox[move.start].pieceType != PieceType.None) temp.PerformMove(move);
+            else isLegal = false;
 
             return isLegal && !IsCheck(temp, color);
         }
