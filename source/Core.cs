@@ -1,13 +1,4 @@
-﻿using Microsoft.VisualBasic;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection.PortableExecutable;
-using System.Text;
-using System.Threading.Tasks;
-using System.Transactions;
-
-namespace Stocktopus_2 {
+﻿namespace Stocktopus_2 {
     internal static class Core {
         internal static Board board = new Board();
 
@@ -18,17 +9,20 @@ namespace Stocktopus_2 {
         internal static int checks = 0;
         internal static int transpositions = 0;
 
+        internal static string nextBookMove = "";
+
         internal static void Initialize() {
-            MoveGen.InitializeKingAttacks();
-            MoveGen.InitializeRankAttacks();
-            MoveGen.InitializeFileAttacks();
-            MoveGen.InitializeA1H8DiagonalAttacks();
-            MoveGen.InitializeH1A8DiagonalAttacks();
+            MovePatternsInit.InitializeKingAttacks();
+            MovePatternsInit.InitializeRankAttacks();
+            MovePatternsInit.InitializeFileAttacks();
+            MovePatternsInit.InitializeA1H8DiagonalAttacks();
+            MovePatternsInit.InitializeH1A8DiagonalAttacks();
         }
 
         internal static void UCINewgame() {
             nodes = 0;
             transpositions = 0;
+            TranspositionTable.Reset();
         }
 
         internal static void SetPosition(string[] args) {
@@ -88,33 +82,16 @@ namespace Stocktopus_2 {
 
             board.UpdateGenericBitboards();
 
+            eColor = Color.White;
+            pColor = Color.Black;
+
             if (args.Length > 3) {
                 int moveCount = 0;
                 for (int i = 0; i < args.Length - 3; i++) {
                     moveCount++;
-                    string startStr = args[i + 3].Substring(0, 2);
-                    string endStr = args[i + 3].Substring(2, 2);
-
-                    byte startX = (byte)((byte)"abcdefgh".IndexOf(startStr[0]) + 1);
-                    byte startY = (byte)(9 - byte.Parse(startStr[1].ToString()));
-                    byte endX = (byte)((byte)"abcdefgh".IndexOf(endStr[0]) + 1);
-                    byte endY = (byte)(9 - byte.Parse(endStr[1].ToString()));
-
-                    byte start = (byte)(((startY - 1) * 8) + startX - 1);
-                    byte end = (byte)(((endY - 1) * 8) + endX - 1);
-                    byte prom = args[i + 3].Length == 5
-                        ? (byte)("nbrq".IndexOf(args[i + 3][4]) + 2)
-                        : (byte)PieceType.None;
-
-                    bool isCastling = false;
-                    bool isEnPassant = false;
-                    if ((byte)board.mailbox[start].pieceType == 1 && (start % 8) + 1 != (end % 8) + 1 && board.mailbox[end].pieceType == 0) isEnPassant = true;
-                    if ((byte)board.mailbox[start].pieceType == (byte)PieceType.King) {
-                        if ((start == 4 && (end == 2 || end == 6)) || (start == 60 && (end == 58 || end == 62))) isCastling = true;
-                    }
-
-                    board.PerformMove(new Move(start, end, (byte)board.mailbox[start].pieceType, isEnPassant ? (byte)1 : (byte)board.mailbox[end].pieceType, prom, isCastling, isEnPassant));
+                    board.PerformMove(Move.StringToMove(board, args[i + 3]));
                 }
+
                 if (moveCount % 2 == 0) {
                     eColor = Color.White;
                     pColor = Color.Black;
@@ -123,14 +100,27 @@ namespace Stocktopus_2 {
                     pColor = Color.White;
                 }
             }
+
+            nextBookMove = "";
+            OpeningsBook.CheckForBookMove(args.Length > 3 ? args.Skip(3).ToArray() : Array.Empty<string>(), out nextBookMove);
         }
 
         internal static string UCIBestmove() {
-            Console.WriteLine(Minimax.Evaluate(board));
-            Move pick = Minimax.FindBestMove(Board.Clone(board), 2);
+            Move pick;
+            if (nextBookMove != "") {
+                Console.WriteLine("book move");
+                pick = Move.StringToMove(board, nextBookMove);
+            } else {
+                pick = Minimax.FindBestMove(Board.Clone(board), 3);
+            }
+
             board.PerformMove(pick);
-            Console.WriteLine(nodes);
+            Console.WriteLine($"nodes: {nodes}");
+            Console.WriteLine($"transpositions: {transpositions}");
             nodes = 0;
+            transpositions = 0;
+
+            TranspositionTable.Reset();
 
             return $"bestmove {pick}";
         }
@@ -174,6 +164,7 @@ namespace Stocktopus_2 {
             bool isLegal = true;
 
             if (move.isCastling) {
+                if (IsCheck(Board.Clone(inpboard), color)) isLegal = false;
                 if (move.end == 2 && !IsMoveLegal(temp, new Move(4, 3, 6, 0, 0, false), color)) isLegal = false;
                 else if (move.end == 6 && !IsMoveLegal(temp, new Move(4, 5, 6, 0, 0, false), color)) isLegal = false;
                 else if (move.end == 58 && !IsMoveLegal(temp, new Move(60, 59, 6, 0, 0, false), color)) isLegal = false;

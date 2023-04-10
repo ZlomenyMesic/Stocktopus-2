@@ -23,7 +23,7 @@ namespace Stocktopus_2 {
                 ? Compass.NorthEast(pawns)
                 : Compass.SouthEast(pawns);
 
-            Bitboard allAttacks = (westAttacks | eastAttacks) & (Core.eColor == Color.White
+            Bitboard allAttacks = (westAttacks | eastAttacks) & (color == Color.White
                 ? board.blackOccupiedSquares
                 : board.whiteOccupiedSquares);
 

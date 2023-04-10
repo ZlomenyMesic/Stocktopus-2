@@ -110,7 +110,7 @@ namespace Stocktopus_2 {
             if (move.isCastling) {
                 if (move.end == 2) PerformMove(new Move(0, 3, 4, 0, 0));
                 else if (move.end == 6) PerformMove(new Move(7, 5, 4, 0, 0));
-                else if (move.end == 58) PerformMove(new Move(56, 57, 4, 0, 0));
+                else if (move.end == 58) PerformMove(new Move(56, 59, 4, 0, 0));
                 else if (move.end == 62) PerformMove(new Move(63, 61, 4, 0, 0));
             }
 
