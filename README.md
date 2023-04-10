@@ -8,4 +8,4 @@ Some stuff yet to come:
 -pre-sorting minimax options   
 -gradual evaluation based on the current game state   
 -better positional evaluation   
--unsure: deeper search for the good moves   
+-unsure: deeper search for good moves   
