@@ -7,5 +7,5 @@ Some stuff yet to come:
 -better transposition table hashing   
 -pre-sorting minimax options   
 -gradual evaluation based on the current game state   
--better evaluation   
+-better positional evaluation   
 -unsure: deeper search for the best moves   
