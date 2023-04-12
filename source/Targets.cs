@@ -55,11 +55,11 @@ namespace Stocktopus_2 {
 
             int diagonal = 7 + (square >> 3) - (square & 7);
             int occupancy = (int)((occupied & Constants.A1H8DiagonalMask[diagonal]) * Constants.A1H8DiagonalMagic[diagonal] >> 56);
-            targets |= MoveGen.A1H8DiagonalAttacks[square][(occupancy >> 1) & 63];
+            targets |= MoveGeneration.A1H8DiagonalAttacks[square][(occupancy >> 1) & 63];
 
             diagonal = (square >> 3) + (square & 7);
             occupancy = (int)((occupied & Constants.H1A8DiagonalMask[diagonal]) * Constants.H1A8DiagonalMagic[diagonal] >> 56);
-            targets |= MoveGen.H1A8DiagonalAttacks[square][(occupancy >> 1) & 63];
+            targets |= MoveGeneration.H1A8DiagonalAttacks[square][(occupancy >> 1) & 63];
 
             return targets & (color == Color.White
                 ? board.blackOccupiedSquares | board.emptySquares
@@ -74,11 +74,11 @@ namespace Stocktopus_2 {
 
             int rank = square >> 3;
             int occupancy = (int)((occupied & Constants.SixBitRankMask[rank]) >> (8 * rank));
-            targets |= MoveGen.RankAttacks[square][(occupancy >> 1) & 63];
+            targets |= MoveGeneration.RankAttacks[square][(occupancy >> 1) & 63];
 
             int file = square & 7;
             occupancy = (int)((occupied & Constants.SixBitFileMask[file]) * Constants.FileMagic[file] >> 56);
-            targets |= MoveGen.FileAttacks[square][(occupancy >> 1) & 63];
+            targets |= MoveGeneration.FileAttacks[square][(occupancy >> 1) & 63];
 
             return targets & (color == Color.White
                 ? board.blackOccupiedSquares | board.emptySquares
@@ -86,7 +86,7 @@ namespace Stocktopus_2 {
         }
 
         internal static Bitboard GetKingTargets(Bitboard king, Board board, Color color) {
-            Bitboard targets = MoveGen.KingAttacks[Bitboard.BitScanForward(king)];
+            Bitboard targets = MoveGeneration.KingAttacks[Bitboard.BitScanForward(king)];
             return targets & (color == Color.White
                 ? board.blackOccupiedSquares | board.emptySquares
                 : board.whiteOccupiedSquares | board.emptySquares);

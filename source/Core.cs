@@ -12,17 +12,18 @@
         internal static string nextBookMove = "";
 
         internal static void Initialize() {
-            MovePatternsInit.InitializeKingAttacks();
-            MovePatternsInit.InitializeRankAttacks();
-            MovePatternsInit.InitializeFileAttacks();
-            MovePatternsInit.InitializeA1H8DiagonalAttacks();
-            MovePatternsInit.InitializeH1A8DiagonalAttacks();
+            MovePatternsInitialization.InitializeKingAttacks();
+            MovePatternsInitialization.InitializeRankAttacks();
+            MovePatternsInitialization.InitializeFileAttacks();
+            MovePatternsInitialization.InitializeA1H8DiagonalAttacks();
+            MovePatternsInitialization.InitializeH1A8DiagonalAttacks();
         }
 
         internal static void UCINewgame() {
             nodes = 0;
             transpositions = 0;
             TranspositionTable.Reset();
+            Minimax.killSearch = false;
         }
 
         internal static void SetPosition(string[] args) {
@@ -133,23 +134,23 @@
                 int j = 0;
 
                 if (i == 0) {
-                    MoveGen.GetKingMoves(new Bitboard(inpboard.bitboards[(byte)kingColor][5]), inpboard, kingColor, moves, ref j);
+                    MoveGeneration.GetKingMoves(new Bitboard(inpboard.bitboards[(byte)kingColor][5]), inpboard, kingColor, moves, ref j);
                     for (int k = 0; k < j; k++)
                         if ((moves[k].capture == 6 || moves[k].capture == 5) && inpboard.mailbox[moves[k].end].color != kingColor) return true;
                 } else if (i == 1) {
-                    MoveGen.GetPawnMoves(new Bitboard(inpboard.bitboards[(byte)kingColor][5]), inpboard, kingColor, moves, ref j);
+                    MoveGeneration.GetPawnMoves(new Bitboard(inpboard.bitboards[(byte)kingColor][5]), inpboard, kingColor, moves, ref j);
                     for (int k = 0; k < j; k++)
                         if ((moves[k].capture == 1) && inpboard.mailbox[moves[k].end].color != kingColor) return true;
                 } else if (i == 2) {
-                    MoveGen.GetKnightMoves(new Bitboard(inpboard.bitboards[(byte)kingColor][5]), inpboard, kingColor, moves, ref j);
+                    MoveGeneration.GetKnightMoves(new Bitboard(inpboard.bitboards[(byte)kingColor][5]), inpboard, kingColor, moves, ref j);
                     for (int k = 0; k < j; k++)
                         if ((moves[k].capture == 2) && inpboard.mailbox[moves[k].end].color != kingColor) return true;
                 } else if (i == 3) {
-                    MoveGen.GetRookMoves(new Bitboard(inpboard.bitboards[(byte)kingColor][5]), inpboard, kingColor, moves, ref j);
+                    MoveGeneration.GetRookMoves(new Bitboard(inpboard.bitboards[(byte)kingColor][5]), inpboard, kingColor, moves, ref j);
                     for (int k = 0; k < j; k++)
                         if ((moves[k].capture == 4 || moves[k].capture == 5) && inpboard.mailbox[moves[k].end].color != kingColor) return true;
                 } else if (i == 4) {
-                    MoveGen.GetBishopMoves(new Bitboard(inpboard.bitboards[(byte)kingColor][5]), inpboard, kingColor, moves, ref j);
+                    MoveGeneration.GetBishopMoves(new Bitboard(inpboard.bitboards[(byte)kingColor][5]), inpboard, kingColor, moves, ref j);
                     for (int k = 0; k < j; k++)
                         if ((moves[k].capture == 3 || moves[k].capture == 5) && inpboard.mailbox[moves[k].end].color != kingColor) return true;
                 }

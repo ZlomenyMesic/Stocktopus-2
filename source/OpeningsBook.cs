@@ -24,7 +24,7 @@ namespace Stocktopus_2 {
             new string[]{ "e2e4", "e7e6", "d2d4", "d7d5", "b1c3", "g8f6", "e4e5", "f6d7", "f2f4", "c7c5", "g1f3", "b8c6" }, // Main line - Classical variation
             new string[]{ "e2e4", "e7e6", "d2d4", "d7d5", "b1c3", "g8f6", "c1g5" }, // Main line - Classical variation, pinning the knight
             new string[]{ "e2e4", "e7e6", "d2d4", "d7d5", "b1c3", "f8b4", "e4e5", "c7c5", "a2a3", "b4c3", "b2c3" }, // Main line - Wineawer variation
-            new string[]{ "e2e4", "e7e6", "d2d4", "d7d5", "b1d2", "g8f6", "e4e5", "f6d7", "b1d3", "c7c5", "c2c3" }, // Tarrasch variation
+            new string[]{ "e2e4", "e7e6", "d2d4", "d7d5", "b1d2", "g8f6", "e4e5", "f6d7", "f1d3", "c7c5", "c2c3" }, // Tarrasch variation
             // Italian game
             new string[]{ "e2e4", "e7e5", "g1f3", "b8c6", "f1c4", "g8f6", "f3g5" }, // 3. Nf6
             new string[]{ "e2e4", "e7e5", "g1f3", "b8c6", "f1c4", "f8c5", "d2d3", "g8f6" }, // Giuoco Piano, 4. d3

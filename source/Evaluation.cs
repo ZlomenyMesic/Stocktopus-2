@@ -52,7 +52,9 @@ namespace Stocktopus_2 {
                 case PieceType.King: mgValue = Constants.MidgameTables[(6 * 64) - i]; egValue = Constants.EndgameTables[(6 * 64) - i]; break;
             }
 
-            // TODO: Gradual evaluation based on the number of pieces left
+            // TODO: Gradual evaluation
+
+            //return numberOfPieces > 24 ? mgValue : ((mgValue - egValue) / 12) * (24 - numberOfPieces);
 
             return numberOfPieces > 16 ? mgValue : egValue;
         }

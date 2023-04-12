@@ -12,6 +12,7 @@ class UCI {
                     case "position": Core.SetPosition(cmd); break;
                     case "go": Console.WriteLine(Core.UCIBestmove()); break;
                     case "ucinewgame": Core.UCINewgame(); break;
+                    case "stop": Minimax.killSearch = true; break;
                 }
             }
         }

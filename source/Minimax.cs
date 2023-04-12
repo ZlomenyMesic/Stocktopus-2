@@ -7,8 +7,10 @@ using System.Threading.Tasks;
 
 namespace Stocktopus_2 {
     internal static class Minimax {
+        internal static bool killSearch = false;
+
         internal static Move FindBestMove(Board board, int depth) {
-            Move[] moves = MoveGen.GetLegalMoves(board, Core.eColor);
+            Move[] moves = MoveGeneration.GetLegalMoves(board, Core.eColor);
             Move[] bestmoves = new Move[218];
             double highestEval = int.MinValue;
             int counter = 0;
@@ -30,7 +32,9 @@ namespace Stocktopus_2 {
         }
 
         internal static int Search(Board board, int depth, bool maximizing, int alpha, int beta) {
-            if (TranspositionTable.TryRetrieveEval(board, depth, out int value)) {
+            if (killSearch) return 0;
+
+            if (TranspositionTable.TryRetrieveEval(board, depth, out int value) && value != 0) {
                 Core.transpositions++;
                 return value;
             }
@@ -74,10 +78,7 @@ namespace Stocktopus_2 {
         }
 
         internal static Board[] GetBoardChildren(Board board, Color color) {
-
-            // TODO: Sort the child boards using the basic evaluation from Evalutation.BasicEval()
-
-            Move[] moves = MoveGen.GetLegalMoves(Board.Clone(board), color);
+            Move[] moves = MoveGeneration.GetLegalMoves(Board.Clone(board), color);
             Board[] children = new Board[moves.Length];
 
             for (int i = 0; i < moves.Length; i++) {
@@ -85,7 +86,35 @@ namespace Stocktopus_2 {
                 children[i].PerformMove(moves[i]);
             }
 
-            return children;
+            Board[] sorted = SortBoardChildren(children);
+
+            return sorted;
+        }
+
+        internal static Board[] SortBoardChildren(Board[] children) {
+            (Board, int)[] toSort = new (Board, int)[children.Length];
+
+            for (int i = 0; i < children.Length; i++) {
+                int eval = Evaluation.BasicEval(children[i]);
+                toSort[i] = (Board.Clone(children[i]), eval);
+            }
+
+            while (true) {
+                bool wereSortsMade = false;
+                for (int i = 0; i < toSort.Length - 1; i++) {
+                    if (toSort[i].Item2 > toSort[i + 1].Item2) {
+                        (toSort[i], toSort[i + 1]) = (toSort[i + 1], toSort[i]);
+                        wereSortsMade = true;
+                    }
+                }
+                if (!wereSortsMade) break;
+            }
+
+            Board[] sorted = new Board[children.Length];
+            for (int i = 0; i < children.Length; i++)
+                sorted[i] = Board.Clone(toSort[i].Item1);
+
+            return sorted;
         }
     }
 }

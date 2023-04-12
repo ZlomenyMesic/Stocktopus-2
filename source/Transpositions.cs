@@ -6,39 +6,39 @@ using System.Threading.Tasks;
 
 namespace Stocktopus_2 {
     internal static class TranspositionTable {
-        private static readonly Dictionary<(ulong, ulong, int), int> hashTable = new();
-
-        private static readonly ulong whiteKingsideCastling = 0x0000000000000069;
-        private static readonly ulong whiteQueensideCastling = 0x0000000000042000;
-        private static readonly ulong blackKingsideCastling = 0x0000000006900000;
-        private static readonly ulong blackQueensideCastling = 0x0000000420000000;
+        private static readonly Dictionary<string, int> hashTable = new();
 
         internal static void Add(Board board, int depth, int eval) {
-            hashTable[GetBoardHash(board, depth)] = eval;
+            hashTable[GetBoardRepresentation(board, depth)] = eval;
         }
 
-        internal static bool TryRetrieveEval(Board board, int depth, out int value) {
-            return hashTable.TryGetValue(GetBoardHash(board, depth), out value);
+        internal static bool TryRetrieveEval(Board board, int depth, out int eval) {
+            return hashTable.TryGetValue(GetBoardRepresentation(board, depth), out eval);
         }
 
-        private static (ulong, ulong, int) GetBoardHash(Board board, int depth) {
+        private static string GetBoardRepresentation(Board board, int depth) {
+            StringBuilder result = new();
 
-            // TODO: Better hashing (not Zobrist)
-
-            ulong whiteHash = 0;
-            ulong blackHash = 0;
-
-            for (int i = 0; i < 6; i++) {
-                whiteHash ^= board.bitboards[0][i];
-                blackHash ^= board.bitboards[1][i];
+            for (int i = 0; i < 64; i++) {
+                switch ((byte)board.mailbox[i].pieceType) {
+                    case 0: result.Append('0'); break;
+                    case 1: result.Append(board.mailbox[i].color == Color.White ? 'P' : 'p'); break;
+                    case 2: result.Append(board.mailbox[i].color == Color.White ? 'N' : 'n'); break;
+                    case 3: result.Append(board.mailbox[i].color == Color.White ? 'B' : 'b'); break;
+                    case 4: result.Append(board.mailbox[i].color == Color.White ? 'R' : 'r'); break;
+                    case 5: result.Append(board.mailbox[i].color == Color.White ? 'Q' : 'q'); break;
+                    case 6: result.Append(board.mailbox[i].color == Color.White ? 'K' : 'k'); break;
+                }
             }
 
-            if (board.canWhiteCastleKingside) whiteHash ^= whiteKingsideCastling;
-            if (board.canWhiteCastleQueenside) whiteHash ^= whiteQueensideCastling;
-            if (board.canBlackCastleKingside) blackHash ^= blackKingsideCastling;
-            if (board.canBlackCastleQueenside) blackHash ^= blackQueensideCastling;
+            result.Append(board.canWhiteCastleKingside ? 't' : 'f');
+            result.Append(board.canWhiteCastleQueenside ? 't' : 'f');
+            result.Append(board.canBlackCastleKingside ? 't' : 'f');
+            result.Append(board.canBlackCastleQueenside ? 't' : 'f' );
 
-            return (whiteHash, blackHash, depth);
+            result.Append(depth * board.enPassantSquare);
+
+            return result.ToString();
         }
 
         internal static void Reset() {
